@@ -1,6 +1,7 @@
 "Module CLI pour nvyz."
 
 import argparse
+from pathlib import Path
 from .encoding.check_md import check_markdown_files
 from .encoding.fix_md import fix_markdown_files
 
@@ -12,6 +13,7 @@ def main():
     # Commande check-md
     parser_check_md = subparsers.add_parser('check-md', help='Vérifie l\'encodage des fichiers Markdown')
     parser_check_md.add_argument('files', nargs='+', help='Fichiers ou motifs (globs) à vérifier')
+    parser_check_md.add_argument('--quiet', '-q', action='store_true', help='Mode silencieux : n\'affiche que les problèmes')
 
     # Commande fix-md
     parser_fix_md = subparsers.add_parser('fix-md', help='Corrige l\'encodage et le contenu des fichiers Markdown')
@@ -27,25 +29,34 @@ def main():
             print("⚠️  Aucun fichier Markdown (.md) trouvé.")
             return
 
+        min_confidence = 0.7
         for res in results:
             encoding = res.get("encoding", "inconnu")
             confidence = res.get("confidence", 0.0)
             error = res.get("error")
-            path = res.get("path", "Chemin inconnu")
+            path_obj = Path(res.get("path", "Chemin inconnu"))
+            try:
+                path = str(path_obj.relative_to(Path.cwd()))
+            except ValueError:
+                path = str(path_obj) # Fallback to absolute if not relative
 
-            status = "✅"
-            if error:
-                status = "❌"
-            elif confidence < 0.7:
-                status = "⚠️ "
-            elif encoding.upper() not in ("UTF-8", "UTF8"):
-                status = "⚠️ "
+            is_issue = error or (encoding and encoding.upper() not in ("UTF-8", "UTF8", "ASCII")) or confidence < min_confidence
 
-            print(f"{status} {path}")
-            if error:
-                print(f"    → Erreur: {error}")
-            else:
-                print(f"    → Encodage: {encoding} (confiance: {confidence:.2%})")
+            if not args.quiet:
+                status = "✅"
+                if error:
+                    status = "❌"
+                elif is_issue:
+                    status = "⚠️ "
+
+                print(f"{status} {path}")
+                if error:
+                    print(f"    → Erreur: {error}")
+                else:
+                    print(f"    → Encodage: {encoding} (confiance: {confidence:.2%})")
+            elif is_issue:
+                print(f"⚠️  {path}: {encoding} ({confidence:.0%})")
+
 
     elif args.command == 'fix-md':
         results = fix_markdown_files(args.files, dry_run=args.dry_run, backup=args.backup)
@@ -54,7 +65,12 @@ def main():
             return
         
         for res in results:
-            path = res.get("path", "Chemin inconnu")
+            path_obj = Path(res.get("path", "Chemin inconnu"))
+            try:
+                path = str(path_obj.relative_to(Path.cwd()))
+            except ValueError:
+                path = str(path_obj) # Fallback to absolute if not relative
+
             success = res.get("success", False)
             message = res.get("message", "Aucun message.")
             icon = "✅" if success else "❌"

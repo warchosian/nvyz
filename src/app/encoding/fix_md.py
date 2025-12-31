@@ -22,8 +22,7 @@ from pathlib import Path
 from typing import List, Tuple
 
 from ..core.pathglob import resolve_path_patterns
-
-import chardet
+from .check_md import check_md
 
 
 # === RÈGLES DE CORRECTION ===
@@ -55,9 +54,9 @@ def encode_spaces_in_links(text: str) -> str:
         return f"{pre}{url}{post}"
 
     # Markdown links & images
-    text = re.sub(r"(!?[\[.*?\]\()([^)\s]+?)([\])])", repl_link, text)
+    text = re.sub(r"(!?\[[^\]]*\]\()([^)]+)(\))", repl_link, text)
     # HTML <a href="">, <img src="">
-    text = re.sub(r'(<(?:a|img)\s[^>]*?(?:href|src)\s*=\s*["\'])([^"\'\s>]+?)(["\'][^>]*?>)', repl_link, text, flags=re.IGNORECASE)
+    text = re.sub(r"""(<(?:a|img)\s[^>]*?(?:href|src)\s*=\s*['"])([^'"]*)(['"][^>]*?>)""", repl_link, text, flags=re.IGNORECASE)
     return text
 
 
@@ -76,11 +75,20 @@ def fix_file_encoding_and_content(path: Path, dry_run: bool = False, backup: boo
     Retourne (ok: bool, message: str)
     """
     try:
-        # 🔍 Détection initiale
-        raw = path.read_bytes()
-        detected = chardet.detect(raw)
-        encoding = detected["encoding"] or "utf-8"
-        confidence = detected["confidence"] or 0.0
+        # 🔍 Détection initiale via check_md
+        check_result = check_md(path)
+        raw = check_result.get("raw_data")
+        encoding = check_result.get("encoding") or "utf-8"
+        confidence = check_result.get("confidence") or 0.0
+
+        if check_result.get("error") or raw is None:
+            error_msg = check_result.get('error', 'could not read file')
+            return False, f"❌ échec: {error_msg}"
+
+        # chardet peut se tromper sur un fichier avec BOM ('utf-8' au lieu de 'utf-8-sig').
+        # On force 'utf-8-sig' pour que le decode() supprime le BOM.
+        if raw.startswith(b'\xef\xbb\xbf'):
+            encoding = 'utf-8-sig'
 
         try:
             text = raw.decode(encoding)
@@ -97,7 +105,7 @@ def fix_file_encoding_and_content(path: Path, dry_run: bool = False, backup: boo
         text = encode_spaces_in_links(text)
         text = ensure_non_empty(text)
 
-        changed = (text != original) or (encoding.lower() not in ("utf-8", "utf8"))
+        changed = (text != original) or (encoding.lower() not in ("utf-8", "utf8", "ascii"))
 
         if not changed:
             return True, "ok (déjà conforme)"
@@ -113,7 +121,7 @@ def fix_file_encoding_and_content(path: Path, dry_run: bool = False, backup: boo
 
         status = "✅ corrigé" if not dry_run else "🔧 (dry-run)"
         details = []
-        if encoding.lower() not in ("utf-8", "utf8"):
+        if encoding.lower() not in ("utf-8", "utf8", "ascii"):
             details.append(f"encoding:{encoding}({confidence:.0%})→UTF-8")
         if text != original:
             details.append("contenu modifié")

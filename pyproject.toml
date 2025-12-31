@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "nvyz"
-version = "0.1.0"
+version = "0.1.1a0"
 description = "Un outil pour vérifier l'encodage des fichiers Markdown."
 authors = ["Votre Nom <votre.email@example.com>"]
 license = "MIT"
@@ -28,7 +28,7 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.commitizen]
 name = "cz_conventional_commits"
-version = "0.1.0"
+version = "0.1.1a0"
 tag_format = "$version"
 version_files = [
     "pyproject.toml:version",

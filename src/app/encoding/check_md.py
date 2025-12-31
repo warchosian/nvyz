@@ -28,12 +28,13 @@ def check_md(file_path: Path) -> dict:
         file_path (Path): Chemin vers le fichier (doit exister).
 
     Returns:
-        dict: Résultat avec 'path', 'encoding', 'confidence', 'error' (si applicable).
+        dict: Résultat avec 'path', 'encoding', 'confidence', 'raw_data', 'error'.
     """
     result = {
         "path": file_path,
         "encoding": None,
         "confidence": 0.0,
+        "raw_data": None,
         "error": None
     }
 
@@ -43,6 +44,8 @@ def check_md(file_path: Path) -> dict:
             return result
 
         raw_data = file_path.read_bytes()
+        result["raw_data"] = raw_data
+
         detected = chardet.detect(raw_data)
         result["encoding"] = detected["encoding"]
         result["confidence"] = detected["confidence"]
