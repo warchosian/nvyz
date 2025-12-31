@@ -1,0 +1,36 @@
+[tool.poetry]
+name = "nvyz"
+version = "0.1.0"
+description = "Un outil pour vérifier l'encodage des fichiers Markdown."
+authors = ["Votre Nom <votre.email@example.com>"]
+license = "MIT"
+readme = "README.md"
+packages = [
+    {include = "app", from = "src"}
+]
+
+[tool.poetry.dependencies]
+python = "^3.10"
+chardet = "^5.2.0"
+
+[tool.poetry.group.dev.dependencies]
+commitizen = "^3.13.0"
+pytest = "^8.0.0"
+black = "^24.0.0"
+isort = "^5.13.0"
+
+[tool.poetry.scripts]
+nvyz = "app.cli:main"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.commitizen]
+name = "cz_conventional_commits"
+version = "0.1.0"
+tag_format = "$version"
+version_files = [
+    "pyproject.toml:version",
+    "src/app/__init__.py:__version__"
+]

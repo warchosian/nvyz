@@ -1,0 +1,5 @@
+model: openrouter/moonshotai/kimi-k2
+api_base: https://openrouter.ai/api/v1
+max_context_tokens: 100000  # ou moins, selon la taille de vos prompts
+
+# C:\Users\herve.marchal\AppData\Roaming\uv\tools\aider-chat\Scripts\python.exe -m pip install --upgrade --upgrade-strategy only-if-needed aider-chat
