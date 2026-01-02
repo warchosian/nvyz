@@ -22,7 +22,7 @@ from pathlib import Path
 from typing import List, Tuple
 
 from ..core.pathglob import resolve_path_patterns
-from .check_md import check_md
+from .chk_utf8 import check_md
 
 
 # === RÈGLES DE CORRECTION ===

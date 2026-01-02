@@ -12,12 +12,21 @@ packages = [
 [tool.poetry.dependencies]
 python = "^3.10"
 chardet = "^5.2.0"
+rich = "^13.7.0"
+python-dotenv = "^1.0.0"
+tree-sitter = "^0.25.2"
+sarif-om = "^1.0.0"
+requests = { version = "^2.31", optional = true }
+xmltodict = { version = "^0.13", optional = true }
+pydantic = {version = "^2.0", extras = ["yaml"]}
 
 [tool.poetry.group.dev.dependencies]
 commitizen = "^3.13.0"
 pytest = "^8.0.0"
 black = "^24.0.0"
 isort = "^5.13.0"
+bandit = "^1.7.0"
+detect-secrets = "^1.4.0"
 
 [tool.poetry.scripts]
 nvyz = "app.cli:main"
@@ -34,3 +43,7 @@ version_files = [
     "pyproject.toml:version",
     "src/app/__init__.py:__version__"
 ]
+
+[tool.poetry.extras]
+codeql = []
+sonarqube = ["requests", "xmltodict"]
