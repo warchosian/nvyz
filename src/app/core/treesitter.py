@@ -4,6 +4,27 @@ from typing import Optional
 
 from tree_sitter import Language, Parser
 
+# Try to import tree_sitter_python (tree-sitter 0.25.x)
+try:
+    import tree_sitter_python
+    HAS_TS_PYTHON_PACKAGE = True
+except ImportError:
+    HAS_TS_PYTHON_PACKAGE = False
+
+# Try to import tree_sitter_java
+try:
+    import tree_sitter_java
+    HAS_TS_JAVA_PACKAGE = True
+except ImportError:
+    HAS_TS_JAVA_PACKAGE = False
+
+# Try to import tree_sitter_php
+try:
+    import tree_sitter_php
+    HAS_TS_PHP_PACKAGE = True
+except ImportError:
+    HAS_TS_PHP_PACKAGE = False
+
 # Assume grammars are located in a 'grammars' directory at the project root
 # For a more robust solution, this path might be configurable or handled by a build process
 GRAMMARS_DIR = Path(__file__).parent.parent.parent / "grammars"
@@ -46,12 +67,50 @@ def load_language_grammar(language_name: str, library_path: Path) -> Optional[La
 def get_parser(language_name: str) -> Optional[Parser]:
     """
     Returns a Tree-sitter parser for the specified language.
-    Assumes pre-compiled grammars are available.
+    Supports both tree-sitter 0.25.x (with tree_sitter_python package)
+    and older versions (with compiled grammars).
     """
+    lang = None
+
     # This needs to be extended to handle multiple languages
     # For now, a simple mapping for common languages
     if language_name.lower() == "python":
-        lang = load_language_grammar("python", PYTHON_LANGUAGE_PATH)
+        # Try new API first (tree-sitter 0.25.x with tree_sitter_python package)
+        if HAS_TS_PYTHON_PACKAGE:
+            try:
+                lang = Language(tree_sitter_python.language())
+                print(f"Loaded Python grammar from tree_sitter_python package (tree-sitter 0.25.x)")
+            except Exception as e:
+                print(f"Warning: Could not load from tree_sitter_python package: {e}")
+                print("Falling back to compiled grammar...")
+                lang = load_language_grammar("python", PYTHON_LANGUAGE_PATH)
+        else:
+            # Fallback to old method (compiled grammar file)
+            lang = load_language_grammar("python", PYTHON_LANGUAGE_PATH)
+    elif language_name.lower() == "java":
+        # Support for Java using tree_sitter_java package
+        if HAS_TS_JAVA_PACKAGE:
+            try:
+                lang = Language(tree_sitter_java.language())
+                print(f"Loaded Java grammar from tree_sitter_java package")
+            except Exception as e:
+                print(f"Warning: Could not load from tree_sitter_java package: {e}")
+                return None
+        else:
+            print(f"Error: tree_sitter_java package not installed. Install with: pip install tree-sitter-java")
+            return None
+    elif language_name.lower() == "php":
+        # Support for PHP using tree_sitter_php package
+        if HAS_TS_PHP_PACKAGE:
+            try:
+                lang = Language(tree_sitter_php.language_php())
+                print(f"Loaded PHP grammar from tree_sitter_php package")
+            except Exception as e:
+                print(f"Warning: Could not load from tree_sitter_php package: {e}")
+                return None
+        else:
+            print(f"Error: tree_sitter_php package not installed. Install with: pip install tree-sitter-php")
+            return None
     # Add more languages here
     # elif language_name.lower() == "javascript":
     #     lang = load_language_grammar("javascript", JAVASCRIPT_LANGUAGE_PATH)
