@@ -30,37 +30,58 @@
 
 ### Prérequis
 - Python 3.10 ou supérieur
-- Poetry (gestionnaire de dépendances)
 
-### Installation via Poetry
+### Installation rapide (recommandée)
+
+**Option 1 : Installation depuis la wheel (plus rapide)**
+
+```bash
+# Télécharger la wheel depuis GitHub Releases
+# https://github.com/warchosian/nvyz/releases
+
+# Installer la wheel
+pip install nvyz-0.1.1a0-py3-none-any.whl
+
+# Installer les grammaires tree-sitter nécessaires
+pip install tree-sitter-python tree-sitter-java tree-sitter-php
+```
+
+**Option 2 : Installation depuis le dépôt**
+
+```bash
+# Cloner et installer en une commande
+git clone https://github.com/warchosian/nvyz.git
+cd nvyz
+pip install dist/nvyz-0.1.1a0-py3-none-any.whl
+
+# Installer les grammaires tree-sitter
+pip install tree-sitter-python tree-sitter-java tree-sitter-php
+```
+
+### Installation pour développeurs (avec Poetry)
 
 ```bash
 # Cloner le dépôt
 git clone https://github.com/warchosian/nvyz.git
 cd nvyz
 
-# Installer les dépendances
+# Installer les dépendances (inclut les outils de développement)
 poetry install
+
+# Installer les grammaires tree-sitter
+pip install tree-sitter-python tree-sitter-java tree-sitter-php
 
 # Activer l'environnement virtuel
 poetry shell
+
+# Vérifier l'installation
+nvyz --version
 ```
 
-### Installation des grammaires tree-sitter
-
-```bash
-# Pour Python
-pip install tree-sitter-python
-
-# Pour Java
-pip install tree-sitter-java
-
-# Pour PHP
-pip install tree-sitter-php
-
-# Pour JavaScript/TypeScript (à venir)
-pip install tree-sitter-javascript tree-sitter-typescript
-```
+**Note pour les développeurs :**
+- Utilisez `poetry run cz commit` pour des commits standardisés
+- Utilisez `poetry run cz bump` pour gérer les versions
+- Lancez `poetry build` pour créer une nouvelle wheel
 
 ## 📖 Utilisation
 
